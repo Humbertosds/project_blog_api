@@ -2,6 +2,7 @@ import sharp from "sharp";
 import { prisma } from "../libs/prisma";
 import fs from 'fs/promises';
 import { v4 } from "uuid";
+import { Prisma } from "../generated/prisma/client";
 
 export const findAdminByEmail = async (email: string) => {
     return await prisma.user.findFirst({ where: { email, role: 'ADMIN' } })
@@ -27,10 +28,10 @@ export const createAdminService = async (name: string, email: string, password: 
 export const handleCover = async (file: Express.Multer.File | undefined) => {
     if (file) {
         try {
-            const coverName = v4() + '.jpg';
+            let coverName = v4() + '.jpg';
 
             const cover = await sharp(file.path)
-                .resize(400, 300).toBuffer();
+                .resize(500, 300).toBuffer();
 
             await sharp(cover)
                 .toFile(`./public/images/covers/${coverName}`);
@@ -46,6 +47,28 @@ export const handleCover = async (file: Express.Multer.File | undefined) => {
     }
 }
 
+export const handleAlterCover = async (file: Express.Multer.File | undefined) => {
+    if (file) {
+        try {
+            let coverName = v4() + '.jpg';
+
+            const cover = await sharp(file.path)
+                .resize(500, 300).toBuffer();
+
+            await sharp(cover)
+                .toFile(`./public/images/covers/${coverName}`);
+
+            await fs.unlink(file.path);
+            return coverName;
+        } catch (error) {
+            console.log('erro interno', error);
+            return undefined;
+        }
+    } else {
+        return undefined
+    }
+}
+
 type CreatePostProps = {
     authorId: string,
     slug: string,
@@ -57,4 +80,8 @@ type CreatePostProps = {
 
 export const createPost = async (data: CreatePostProps) => {
     return await prisma.post.create({ data });
+}
+
+export const alterPost = async (slug: string, data: Prisma.PostUpdateInput) => {
+    return await prisma.post.update({ where: { slug }, data });
 }

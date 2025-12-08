@@ -11,3 +11,10 @@ export const createPostSchema = z.object({
     body: z.string().min(3),
     tags: z.array(z.string())
 })
+
+export const alterPostSchema = z.object({
+    title: z.string().optional(),
+    body: z.string().optional(),
+    status: z.enum(["DRAFT", "PUBLISHED"]).optional(),
+    tags: z.array(z.string()).optional()
+})

@@ -1,10 +1,10 @@
 import { RequestHandler } from "express";
-import { createAdminSchema, createPostSchema } from "../schemas/admin.schemas";
-import { createAdminService, createPost, findAdminByEmail, handleCover } from "../services/admin.service";
+import { alterPostSchema, createAdminSchema, createPostSchema } from "../schemas/admin.schemas";
+import { alterPost, createAdminService, createPost, findAdminByEmail, findPostBySlug, handleAlterCover, handleCover } from "../services/admin.service";
 import { hash } from "argon2";
 import uniqueSlug from "unique-slug";
 import { findUserById } from "../services/auth.service";
-import { coverWithUrlBase } from "../utils/coverWithBaseUrl";
+import { coverWithUrlBase, coverWithUrlBaseOrUndefined } from "../utils/coverWithBaseUrl";
 import { generateUniqueSlug } from "../utils/generateUniqueSlug";
 
 export const authAdmin: RequestHandler = async (req, res) => {
@@ -75,9 +75,75 @@ export const postCreate: RequestHandler = async (req, res) => {
             title: postCreated.title,
             body: postCreated.body,
             createdAt: postCreated.createdAt,
-            cover: coverWithUrlBase(postCreated.cover),
+            cover: postCreated.cover,
             tags: postCreated.tags,
             status: postCreated.status
         }
     })
 };
+
+export const postAlter: RequestHandler = async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: 'Acesso negado' });
+
+    const { slug } = req.params;
+
+    let tagsData: string[] | undefined;
+
+    if (req.body.tags !== undefined) {
+        try {
+            tagsData = JSON.parse(req.body.tags)
+        } catch (error) {
+            return res.json({ error: 'Tags inválidas' })
+        }
+    }
+
+    const safeData = alterPostSchema.safeParse({
+        title: req.body.title,
+        body: req.body.body,
+        status: req.body.status,
+        tags: tagsData
+    });
+
+    if (!safeData.success) return res.json({ error: safeData.error.issues });
+
+    const post = await findPostBySlug(slug);
+    if (!post) {
+        return res.json({ error: 'Não existe post com esse slug' })
+    }
+
+    let cover: string | undefined = undefined;
+    if (req.file) {
+        cover = await handleAlterCover(req.file);
+    }
+
+    const { title, body, status, tags } = safeData.data;
+
+    const updatedPost = await alterPost(
+        slug,
+        {
+            title,
+            body,
+            status,
+            tags,
+            updatedAt: new Date(),
+            cover: coverWithUrlBaseOrUndefined(cover)
+        }
+    );
+
+    const author = await findUserById(updatedPost.authorId);
+
+    return res.json({
+        post: {
+            id: updatedPost.id,
+            title: updatedPost.title,
+            body: updatedPost.body,
+            slug: updatedPost.slug,
+            status: updatedPost.status,
+            createdAt: updatedPost.createdAt,
+            updatedAt: updatedPost.updatedAt,
+            cover: coverWithUrlBaseOrUndefined(cover),
+            tags: updatedPost.tags,
+            authorName: author?.name
+        }
+    })
+}

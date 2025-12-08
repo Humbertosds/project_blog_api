@@ -17,5 +17,5 @@ adminRouter.post('/auth/create', MiddlewareJWT, adminController.createAdmin);
 adminRouter.post('/posts', MiddlewareJWT, upload.single('cover'), adminController.postCreate);
 adminRouter.get('/posts', MiddlewareJWT);
 adminRouter.get('/posts/:slug', MiddlewareJWT);
-adminRouter.patch('/posts/:slug', MiddlewareJWT);
+adminRouter.patch('/posts/:slug', MiddlewareJWT, upload.single('cover'), adminController.postAlter);
 adminRouter.delete('/posts/:slug', MiddlewareJWT);
