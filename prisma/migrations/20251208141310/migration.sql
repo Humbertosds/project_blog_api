@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "posts" ALTER COLUMN "cover" SET DATA TYPE TEXT;

@@ -1,8 +1,13 @@
 import express, { urlencoded } from 'express';
 import 'dotenv/config';
 import cors from 'cors';
-import { mainRouter } from './routes/main';
+import { mainRouter } from './routes/main.routes';
 import helmet from 'helmet';
+import { adminRouter } from './routes/admin.routes';
+import { authRouter } from './routes/auth.routes';
+import passport from 'passport';
+import { LocalStrategy } from './auth/strategies/passport_local';
+import { JWTStrategy } from './auth/strategies/passport_jwt';
 
 const server = express();
 server.use(helmet());
@@ -11,7 +16,13 @@ server.use(urlencoded({ extended: true }));
 server.disable('x-powered-by');
 server.use(express.json());
 
-server.use(mainRouter);
+passport.use(JWTStrategy);
+passport.use(LocalStrategy);
+server.use(passport.initialize());
+
+server.use('/api', mainRouter);
+server.use('/api/admin', adminRouter);
+server.use('/api/auth', authRouter);
 
 const port = process.env.PORT || 3000;
 server.listen(port, () => {
