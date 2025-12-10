@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { alterPostSchema, createAdminSchema, createPostSchema } from "../schemas/admin.schemas";
-import { alterPost, createAdminService, createPost, findAdminByEmail, findPostBySlug, handleAlterCover, handleCover } from "../services/admin.service";
+import { alterPost, createAdminService, createPost, deletePost, findAdminByEmail, findPostBySlug, getAllPosts, handleAlterCover, handleCover } from "../services/admin.service";
 import { hash } from "argon2";
 import uniqueSlug from "unique-slug";
 import { findUserById } from "../services/auth.service";
@@ -82,6 +82,56 @@ export const postCreate: RequestHandler = async (req, res) => {
     })
 };
 
+export const allPostsGet: RequestHandler = async (req, res) => {
+    if (!req.user) return res.status(401).json({ error: 'Acesso negado' });
+
+    let page = 1;
+    if (req.query.page) {
+        page = parseInt(req.query.page as string);
+        if (page <= 0 || !Number(page)) {
+            return res.json({ error: 'Página inexistente' })
+        }
+    }
+
+    const posts = await getAllPosts(page);
+
+    const response = posts.map(post => ({
+        id: post.id,
+        status: post.status,
+        title: post.title,
+        createdAt: post.createdAt,
+        cover: post.cover,
+        authorName: post.author.name,
+        tags: post.tags,
+        slug: post.slug,
+    }));
+
+    return res.json({ posts: response, page })
+
+}
+
+export const onePostGet: RequestHandler = async (req, res) => {
+    const { slug } = req.params;
+
+    const post = await findPostBySlug(slug);
+    if (!post) {
+        return res.json({ error: 'Post inexistente' })
+    }
+
+    const response = {
+        id: post.id,
+        slug: post.slug,
+        title: post.title,
+        body: post.body,
+        createdAt: post.createdAt,
+        cover: post.cover,
+        authorName: post.author.name,
+        tags: post.tags
+    }
+
+    return res.json({ post: response });
+}
+
 export const postAlter: RequestHandler = async (req, res) => {
     if (!req.user) return res.status(401).json({ error: 'Acesso negado' });
 
@@ -146,4 +196,17 @@ export const postAlter: RequestHandler = async (req, res) => {
             authorName: author?.name
         }
     })
+}
+
+export const postDelete: RequestHandler = async (req, res) => {
+    const { slug } = req.params;
+
+    const post = await findPostBySlug(slug);
+    if (!post) {
+        return res.json({ error: 'Post não existe' })
+    }
+
+    await deletePost(post.slug);
+
+    res.json({ error: null })
 }

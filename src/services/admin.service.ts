@@ -25,6 +25,45 @@ export const createAdminService = async (name: string, email: string, password: 
     return await prisma.user.create({ data: { name, email, password, role: 'ADMIN' } })
 }
 
+type CreatePostProps = {
+    authorId: string,
+    slug: string,
+    title: string,
+    body: string,
+    tags: string[],
+    cover: string | null,
+}
+
+export const createPost = async (data: CreatePostProps) => {
+    return await prisma.post.create({ data });
+}
+
+export const getAllPosts = async (page: number) => {
+    if (page <= 0) return [];
+    const perPage = 2;
+
+    const posts = await prisma.post.findMany({
+        include: {
+            author: {
+                select: { name: true }
+            }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: perPage,
+        skip: (page - 1) * perPage,
+    })
+
+    return posts;
+}
+
+export const alterPost = async (slug: string, data: Prisma.PostUpdateInput) => {
+    return await prisma.post.update({ where: { slug }, data });
+}
+
+export const deletePost = async (slug: string) => {
+    return await prisma.post.delete({ where: { slug } });
+}
+
 export const handleCover = async (file: Express.Multer.File | undefined) => {
     if (file) {
         try {
@@ -67,21 +106,4 @@ export const handleAlterCover = async (file: Express.Multer.File | undefined) =>
     } else {
         return undefined
     }
-}
-
-type CreatePostProps = {
-    authorId: string,
-    slug: string,
-    title: string,
-    body: string,
-    tags: string[],
-    cover: string | null,
-}
-
-export const createPost = async (data: CreatePostProps) => {
-    return await prisma.post.create({ data });
-}
-
-export const alterPost = async (slug: string, data: Prisma.PostUpdateInput) => {
-    return await prisma.post.update({ where: { slug }, data });
 }

@@ -15,7 +15,7 @@ adminRouter.post('/auth', MiddlewareLocal, adminController.authAdmin);
 adminRouter.post('/auth/create', MiddlewareJWT, adminController.createAdmin);
 
 adminRouter.post('/posts', MiddlewareJWT, upload.single('cover'), adminController.postCreate);
-adminRouter.get('/posts', MiddlewareJWT);
-adminRouter.get('/posts/:slug', MiddlewareJWT);
+adminRouter.get('/posts', MiddlewareJWT, adminController.allPostsGet);
+adminRouter.get('/posts/:slug', MiddlewareJWT, adminController.onePostGet);
 adminRouter.patch('/posts/:slug', MiddlewareJWT, upload.single('cover'), adminController.postAlter);
-adminRouter.delete('/posts/:slug', MiddlewareJWT);
+adminRouter.delete('/posts/:slug', MiddlewareJWT, adminController.postDelete);
