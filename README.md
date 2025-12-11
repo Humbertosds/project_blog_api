@@ -61,6 +61,7 @@ Certifique-se de configurar as seguintes variáveis no arquivo `.env`:
 DATABASE_URL="postgresql://user:password@localhost:5432/blog"
 JWT_SECRET="sua-chave-secreta"
 PORT=3000
+NODE_ENV="development"
 ```
 
 ## 🏃 Como executar
@@ -70,7 +71,7 @@ PORT=3000
 tsx watch src/server.ts
 ```
 
-A API estará disponível em `http://localhost:3000`
+A API estará disponível em `http://localhost:3000/api`
 
 ## 📚 Documentação da API
 
@@ -94,21 +95,21 @@ Você pode visualizar a documentação de forma interativa usando:
 ### Endpoints principais:
 
 #### 🔓 Públicos (Auth)
-- `POST /auth/signup` - Cadastro de usuário
-- `POST /auth/signin` - Login
-- `POST /auth/validate` - Validar token JWT
+- `POST /api/auth/signup` - Cadastro de usuário
+- `POST /api/auth/signin` - Login
+- `POST /api/auth/validate` - Validar token JWT
 
 #### 📖 Posts (Autenticados)
-- `GET /posts` - Listar posts publicados
-- `GET /posts/:slug` - Obter post específico
-- `GET /posts/:slug/related` - Posts relacionados
+- `GET /api/posts` - Listar posts publicados
+- `GET /api/posts/:slug` - Obter post específico
+- `GET /api/posts/:slug/related` - Posts relacionados
 
 #### 🔐 Admin (Autenticados)
-- `GET /admin/posts` - Listar todos os posts (incluindo drafts)
-- `GET /admin/posts/:slug` - Obter post específico
-- `POST /admin/posts` - Criar novo post
-- `PUT /admin/posts/:slug` - Editar post
-- `DELETE /admin/posts/:slug` - Deletar post
+- `GET /api/admin/posts` - Listar todos os posts (incluindo drafts)
+- `GET /api/admin/posts/:slug` - Obter post específico
+- `POST /api/admin/posts` - Criar novo post
+- `PUT /api/admin/posts/:slug` - Editar post
+- `DELETE /api/admin/posts/:slug` - Deletar post
 
 ## 🗂️ Estrutura do Banco de Dados
 
@@ -162,7 +163,7 @@ Authorization: Bearer <seu-token>
 
 ## 📦 Upload de Arquivos
 
-A rota de criação e edição de posts (`POST /admin/posts` e `PUT /admin/posts/:slug`) aceita `multipart/form-data` para upload da imagem de capa.
+A rota de criação e edição de posts (`POST /api/admin/posts` e `PUT /api/admin/posts/:slug`) aceita `multipart/form-data` para upload da imagem de capa.
 
 ## 🤝 Contribuindo
 
