@@ -1,6 +1,6 @@
 Resources:
 - Post:
--- id int
+-- id String @id @default(uuid())
 -- slug
 -- status enum PUBLISHED | DRAFT @default(DRAFT)
 -- title
@@ -12,7 +12,7 @@ Resources:
 -- tags
 
 - User:
--- id int
+-- id String @id @default(uuid())
 -- status boolean @default(true)
 -- name
 -- email @unique
@@ -23,6 +23,7 @@ Endpoints
 - GET /posts (Listagem dos posts, com paginação)
 -- Requisição:
 --- Querystring: ?page=4
+--- Header Authorization: Bearer abc
 -- Resposta:
 {
     posts: [
@@ -32,12 +33,16 @@ Endpoints
 }
 
 - GET /posts/:slug (Um post específico)
+-- Requisição:
+--- Header Authorization: Bearer abc
 -- Resposta:
 {
     post: { id, title, createdAt, cover, authorName, tags, body, slug }
 }
 
 - GET /posts/:slug/related (Posts relacionados = tags similares)
+-- Requisição:
+--- Header Authorization: Bearer abc
 -- Resposta:
 {
     posts: [

@@ -20,7 +20,9 @@
         "pg": "^8.16.3",
         "sharp": "^0.34.5",
         "slug": "^11.0.1",
+        "swagger-ui-express": "^5.0.1",
         "uuid": "^13.0.0",
+        "yaml": "^2.8.2",
         "zod": "^4.1.13"
     },
     "devDependencies": {
@@ -35,6 +37,7 @@
         "@types/passport-local": "^1.0.38",
         "@types/pg": "^8.15.6",
         "@types/slug": "^5.0.9",
+        "@types/swagger-ui-express": "^4.1.8",
         "@types/unique-slug": "^4.0.0",
         "prisma": "^7.1.0",
         "tsx": "^4.21.0",

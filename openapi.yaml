@@ -1,0 +1,585 @@
+openapi: 3.0.0
+info:
+  title: Blog API
+  version: 1.0.0
+  description: API para gerenciamento de posts de blog
+
+# ===== DATABASE SCHEMA (PRISMA) =====
+x-database-schema:
+  models:
+    Post:
+      fields:
+        id:
+          type: String
+          primary: true
+          default: uuid()
+        slug:
+          type: String
+          unique: true
+        status:
+          type: Enum
+          values: [PUBLISHED, DRAFT]
+          default: DRAFT
+        title:
+          type: String
+        body:
+          type: String
+        createdAt:
+          type: DateTime
+          default: now()
+        updatedAt:
+          type: DateTime
+          optional: true
+        cover:
+          type: String
+        authorId:
+          type: String
+        tags:
+          type: String[]
+      relations:
+        author:
+          model: User
+          field: authorId
+
+    User:
+      fields:
+        id:
+          type: String
+          primary: true
+          default: uuid()
+        status:
+          type: Boolean
+          default: true
+        name:
+          type: String
+        email:
+          type: String
+          unique: true
+        password:
+          type: String
+      relations:
+        posts:
+          model: Post
+          relation: one-to-many
+
+# ===== API ENDPOINTS =====
+servers:
+  - url: http://localhost:3000
+    description: Development server
+
+paths:
+  /api/posts:
+    get:
+      summary: Listagem dos posts publicados com paginação
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Número da página
+      responses:
+        '200':
+          description: Lista de posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        title:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        cover:
+                          type: string
+                        authorName:
+                          type: string
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                        slug:
+                          type: string
+                  page:
+                    type: integer
+
+  /api/posts/{slug}:
+    get:
+      summary: Obter um post específico pelo slug
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+          description: Slug do post
+      responses:
+        '200':
+          description: Detalhes do post
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  post:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      title:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      cover:
+                        type: string
+                      authorName:
+                        type: string
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                      body:
+                        type: string
+                      slug:
+                        type: string
+
+  /api/posts/{slug}/related:
+    get:
+      summary: Obter posts relacionados (com tags similares)
+      tags:
+        - Posts
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+          description: Slug do post
+      responses:
+        '200':
+          description: Lista de posts relacionados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        title:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        cover:
+                          type: string
+                        authorName:
+                          type: string
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                        slug:
+                          type: string
+
+  /api/auth/signup:
+    post:
+      summary: Cadastro de novo usuário
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                      email:
+                        type: string
+                  token:
+                    type: string
+
+  /api/auth/signin:
+    post:
+      summary: Login de usuário
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                      email:
+                        type: string
+                  token:
+                    type: string
+
+  /api/auth/validate:
+    post:
+      summary: Validar token JWT
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token válido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                      email:
+                        type: string
+
+  /api/admin/posts:
+    get:
+      summary: Listar todos os posts (incluindo drafts) com paginação
+      tags:
+        - Admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Número da página
+      responses:
+        '200':
+          description: Lista de posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        status:
+                          type: string
+                          enum: [PUBLISHED, DRAFT]
+                        title:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        cover:
+                          type: string
+                        authorName:
+                          type: string
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                        slug:
+                          type: string
+                  page:
+                    type: integer
+
+    post:
+      summary: Criar novo post
+      tags:
+        - Admin
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - title
+                - body
+              properties:
+                status:
+                  type: string
+                  enum: [PUBLISHED, DRAFT]
+                  default: DRAFT
+                title:
+                  type: string
+                tags:
+                  type: string
+                  description: Tags separadas por vírgula
+                body:
+                  type: string
+                cover:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Post criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  post:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      status:
+                        type: string
+                      title:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      cover:
+                        type: string
+                      authorName:
+                        type: string
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                      slug:
+                        type: string
+
+  /api/admin/posts/{slug}:
+    get:
+      summary: Obter um post específico (admin)
+      tags:
+        - Admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+          description: Slug do post
+      responses:
+        '200':
+          description: Detalhes do post
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  post:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      title:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      cover:
+                        type: string
+                      authorName:
+                        type: string
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                      body:
+                        type: string
+                      slug:
+                        type: string
+
+    patch:
+      summary: Editar um post
+      tags:
+        - Admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+          description: Slug do post
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [PUBLISHED, DRAFT]
+                title:
+                  type: string
+                tags:
+                  type: string
+                  description: Tags separadas por vírgula
+                body:
+                  type: string
+                cover:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Post atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  post:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      status:
+                        type: string
+                      title:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      cover:
+                        type: string
+                      authorName:
+                        type: string
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                      slug:
+                        type: string
+
+    delete:
+      summary: Deletar um post
+      tags:
+        - Admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+          description: Slug do post
+      responses:
+        '200':
+          description: Post deletado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: null
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+tags:
+  - name: Posts
+    description: Endpoints públicos de posts
+  - name: Auth
+    description: Autenticação de usuários
+  - name: Admin
+    description: Endpoints administrativos (requer autenticação)
