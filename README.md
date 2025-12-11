@@ -173,10 +173,6 @@ A rota de criação e edição de posts (`POST /api/admin/posts` e `PUT /api/adm
 4. Push para a branch (`git push origin feature/MinhaFeature`)
 5. Abra um Pull Request
 
-## 📄 Licença
-
-Este projeto está sob a licença MIT.
-
 ---
 
 Feito com ❤️
