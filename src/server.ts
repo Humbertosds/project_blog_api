@@ -11,6 +11,8 @@ import { JWTStrategy } from './auth/strategies/passport_jwt';
 import swaggerUi from 'swagger-ui-express';
 import yaml from 'yaml';
 import fs from 'fs';
+import { errorHandler } from './middlewares/errorHandler';
+import rateLimit from 'express-rate-limit';
 
 let cachedSpec: any = null;
 
@@ -28,11 +30,12 @@ server.use(passport.initialize());
 server.use('/api', mainRouter);
 server.use('/api/admin', adminRouter);
 server.use('/api/auth', authRouter);
+server.use(errorHandler);
 
 const getOpenAPISpec = () => {
     const isDev = process.env.NODE_ENV !== 'production';
     if (!isDev && cachedSpec) return cachedSpec;
-    const raw = fs.readFileSync('src/openapi.yaml', 'utf-8');
+    const raw = fs.readFileSync('openapi.yaml', 'utf-8');
     cachedSpec = yaml.parse(raw);
     return cachedSpec
 }
