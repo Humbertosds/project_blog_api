@@ -12,7 +12,6 @@ import swaggerUi from 'swagger-ui-express';
 import yaml from 'yaml';
 import fs from 'fs';
 import { errorHandler } from './middlewares/errorHandler';
-import rateLimit from 'express-rate-limit';
 
 let cachedSpec: any = null;
 
